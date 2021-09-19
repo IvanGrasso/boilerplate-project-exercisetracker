@@ -12,14 +12,14 @@ mongoose.connect(process.env['DB_URI']).then(() => {
   console.log("Database connection error: ", err)
 })
 
-const ExerciseSchema = new mongoose.Schema({
+const Exercise = new mongoose.model('Exercise',{
+  user_id: String,
   description: String,
   duration: Number,
   date: Date
 })
 const User = mongoose.model('User', {
-  username: String,
-  exercises: [ExerciseSchema]
+  username: String
 })
 
 app.use(cors())
@@ -34,9 +34,49 @@ app.get('/', (req, res) => {
   res.sendFile(__dirname + '/views/index.html')
 })
 
+app.get('/api/users/:_id/logs', async (req, res) => {
+  try {
+    let user = await User.findOne({ _id: req.params._id })
+
+    let limit = null
+    if (req.query.limit) {
+      limit = new Number(req.query.limit)
+    }
+
+    let conditions = [{ user_id: user._id }]
+    if (req.query.from) {
+      conditions.push({ date: { $gte: req.query.from } })
+    }
+    if (req.query.to) {
+      conditions.push({ date: { $lte: req.query.to } })
+    }
+    let filter = conditions.length ? { $and: conditions } : { }
+
+    let exercises = await Exercise.find(filter).limit(limit)
+
+    let log = exercises.map(exercise => {
+      return {
+        description: exercise.description,
+        duration: exercise.duration,
+        date: exercise.date
+      }
+    })
+
+    res.json({
+      _id: user._id,
+      username: user.username,
+      count: log.length,
+      log: log
+    })
+  } catch (e) {
+    console.log(e)
+    res.json(e.message)
+  }
+})
+
 app.post('/api/users', async (req, res) => {
   try {
-    let user = new User({ username: req.body.name })
+    let user = new User({ username: req.body.username })
     await user.save()
     res.json({
       username: user.username,
@@ -44,17 +84,21 @@ app.post('/api/users', async (req, res) => {
     })
   } catch (e) {
     console.log(e)
+    res.json(e.message)
   }
 })
 
 app.post('/api/users/:_id/exercises', async (req, res) => {
   try {
-    let exercise = {
+    let user = await User.findOne({_id: req.params._id })
+
+    let exercise = new Exercise({
+      user_id: user._id,
       date: new Date(req.body.date),
       duration: req.body.duration,
       description: req.body.description
-    }
-    let user = await User.findOneAndUpdate({_id: req.params._id}, { $push: { exercises: exercise } })
+    })
+    await exercise.save()
     res.json({
       _id: user._id,
       username: user.username,
