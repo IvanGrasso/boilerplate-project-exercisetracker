@@ -39,13 +39,16 @@ app.get('/api/users', async (req, res) => {
     let users = await User.find()
     res.send(users)
   } catch (e) {
-    console.log(e)
+    res.send(e.message)
   }
 })
 
 app.get('/api/users/:_id/logs', async (req, res) => {
   try {
-    let user = await User.findOne({ _id: req.params._id })
+    let user = await User.findById(req.params._id)
+    if (!user) {
+      return res.status(404).send('Unable to find user.')
+    }
 
     let limit = null
     if (req.query.limit) {
@@ -78,8 +81,7 @@ app.get('/api/users/:_id/logs', async (req, res) => {
       log: log
     })
   } catch (e) {
-    console.log(e)
-    res.json(e.message)
+    res.send(e.message)
   }
 })
 
@@ -92,14 +94,16 @@ app.post('/api/users', async (req, res) => {
       _id: user._id
     })
   } catch (e) {
-    console.log(e)
-    res.json(e.message)
+    res.send(e.message)
   }
 })
 
 app.post('/api/users/:_id/exercises', async (req, res) => {
   try {
-    let user = await User.findOne({_id: req.params._id })
+    let user = await User.findById(req.params._id)
+    if (!user) {
+      return res.status(404).send('Unable to find user.')
+    }
     let date
     if (req.body.date) {
       date = new Date(req.body.date)
@@ -123,7 +127,7 @@ app.post('/api/users/:_id/exercises', async (req, res) => {
       _id: user._id,
     })
   } catch (e) {
-    res.json(e.message)
+    res.send(e.message)
   }
 })
 
