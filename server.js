@@ -72,9 +72,9 @@ app.get('/api/users/:_id/logs', async (req, res) => {
     })
 
     res.json({
-      _id: user._id,
       username: user.username,
       count: log.length,
+      _id: user._id,
       log: log
     })
   } catch (e) {
@@ -114,14 +114,13 @@ app.post('/api/users/:_id/exercises', async (req, res) => {
     })
     await exercise.save()
     res.json({
-      _id: user._id,
       username: user.username,
-      date: exercise.date.toDateString(),
+      description: exercise.description,
       duration: exercise.duration,
-      description: exercise.description
+      date: exercise.date.toDateString(),
+      _id: user._id,
     })
   } catch (e) {
-    console.log(e)
     res.json(e.message)
   }
 })
