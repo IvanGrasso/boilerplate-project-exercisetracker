@@ -113,11 +113,13 @@ app.post('/api/users/:_id/exercises', async (req, res) => {
       description: req.body.description
     })
     await exercise.save()
+    let utcDateString = exercise.date.toLocaleString('en-US', { timeZone: "UTC", day: "2-digit", month: "short", year: "numeric", weekday: "short" })
+    let formattedDate = utcDateString.replace(/,/g, "")
     res.json({
       username: user.username,
       description: exercise.description,
       duration: exercise.duration,
-      date: exercise.date.toDateString(),
+      date: formattedDate,
       _id: user._id,
     })
   } catch (e) {
