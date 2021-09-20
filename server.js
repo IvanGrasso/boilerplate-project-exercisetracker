@@ -34,13 +34,22 @@ app.get('/', (req, res) => {
   res.sendFile(__dirname + '/views/index.html')
 })
 
+app.get('/api/users', async (req, res) => {
+  try {
+    let users = await User.find()
+    res.send(users)
+  } catch (e) {
+    console.log(e)
+  }
+})
+
 app.get('/api/users/:_id/logs', async (req, res) => {
   try {
     let user = await User.findOne({ _id: req.params._id })
 
     let limit = null
     if (req.query.limit) {
-      limit = new Number(req.query.limit)
+      limit = Number(req.query.limit)
     }
 
     let conditions = [{ user_id: user._id }]
