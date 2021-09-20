@@ -100,10 +100,15 @@ app.post('/api/users', async (req, res) => {
 app.post('/api/users/:_id/exercises', async (req, res) => {
   try {
     let user = await User.findOne({_id: req.params._id })
-
+    let date
+    if (req.body.date) {
+      date = new Date(req.body.date)
+    } else {
+      date = new Date()
+    }
     let exercise = new Exercise({
       user_id: user._id,
-      date: new Date(req.body.date),
+      date: date,
       duration: req.body.duration,
       description: req.body.description
     })
